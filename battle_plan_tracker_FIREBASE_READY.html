@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Week Battle Plan Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .countdown {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .day-schedule {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .day-schedule h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .time-block {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .time-block:last-child {
+            border-bottom: none;
+        }
+
+        .time {
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
+        }
+
+        .activity {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .activity.protected {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .activity.work {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .week-section {
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .week-section.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .week-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .week-section.completed .week-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .week-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .week-content {
+            padding: 20px;
+        }
+
+        .week-content.collapsed {
+            display: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+        }
+
+        .task-item.completed {
+            background: #d4edda;
+        }
+
+        .task-item.protected-time {
+            background: #d1ecf1;
+            opacity: 0.7;
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .task-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .task-details {
+            flex: 1;
+        }
+
+        .task-time {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .task-description {
+            color: #495057;
+        }
+
+        .task-item.completed .task-description {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .time-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-input input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .time-input label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .actions {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .notes-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .notes-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px solid #ffc107;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .log-entry-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .log-entry-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .time-log-row {
+            display: grid;
+            grid-template-columns: 150px 100px 1fr 150px;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f5;
+            align-items: center;
+        }
+
+        .time-log-row:last-child {
+            border-bottom: none;
+        }
+
+        .time-log-row label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .time-log-row input[type="number"] {
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .time-log-row input[type="text"] {
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .planned-hours {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .deviation {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+
+            .time-log-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .time-log-row label {
+                font-weight: 700;
+            }
+        }
+    </style>
+    <script>
+        let progress = {
+            tasks: {},
+            actualHours: {},
+            notes: {},
+            dailyLogs: {}
+        };
+        let currentUser = null;
+        let firestoreUnsubscribe = null;
+    </script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ⚠️⚠️⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG ⚠️⚠️⚠️
+        // Get this from Firebase Console → Project Settings → Web App
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXnHnOuY1cIS3q74_3VanlqeiTcFklD44",
+            authDomain: "battle-plan-tracker.firebaseapp.com",
+            projectId: "battle-plan-tracker",
+            storageBucket: "battle-plan-tracker.firebasestorage.app",
+            messagingSenderId: "634543656963",
+            appId: "1:634543656963:web:5a47964853bead06243e36"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Make globally available
+        window.fb = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, onAuthStateChanged, firebaseSignOut, doc, setDoc, onSnapshot };
+        
+        // Auth state listener
+        window.fb.onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('syncStatus').textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                
+                // Set up Firestore listener
+                const userDoc = window.fb.doc(db, 'users', user.uid);
+                if (window.firestoreUnsubscribe) window.firestoreUnsubscribe();
+                
+                window.firestoreUnsubscribe = window.fb.onSnapshot(userDoc, (snapshot) => {
+                    if (snapshot.exists()) {
+                        window.progress = snapshot.data();
+                        window.renderPlan();
+                        window.updateStats();
+                        if (window.loadDailyLog) window.loadDailyLog();
+                    } else {
+                        window.saveToFirebase();
+                    }
+                });
+            } else {
+                window.currentUser = null;
+                document.getElementById('syncStatus').textContent = '💾 Local Only';
+                document.getElementById('logoutBtn').style.display = 'none';
+                setTimeout(() => document.getElementById('loginModal').style.display = 'flex', 500);
+                
+                if (window.firestoreUnsubscribe) window.firestoreUnsubscribe();
+                window.progress = JSON.parse(localStorage.getItem('battlePlanProgress')) || {
+                    tasks: {}, actualHours: {}, notes: {}, dailyLogs: {}
+                };
+                window.renderPlan();
+                window.updateStats();
+            }
+        });
+        
+        // Save to Firebase function
+        window.saveToFirebase = async function() {
+            if (!window.currentUser) {
+                localStorage.setItem('battlePlanProgress', JSON.stringify(window.progress));
+                return;
+            }
+            try {
+                const userDoc = window.fb.doc(window.fb.db, 'users', window.currentUser.uid);
+                await window.fb.setDoc(userDoc, window.progress);
+            } catch (error) {
+                console.error('Firebase save error:', error);
+                localStorage.setItem('battlePlanProgress', JSON.stringify(window.progress));
+            }
+        };
+        
+        // Auth functions
+        window.handleEmailAuth = async function() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorDiv = document.getElementById('authError');
+            
+            if (!email || !password) {
+                errorDiv.textContent = 'Please enter email and password';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                try {
+                    await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
+                } catch (loginError) {
+                    if (loginError.code === 'auth/user-not-found' || loginError.code === 'auth/wrong-password') {
+                        if (password.length < 6) {
+                            errorDiv.textContent = 'Password must be at least 6 characters';
+                            errorDiv.style.display = 'block';
+                            return;
+                        }
+                        await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
+                    } else {
+                        throw loginError;
+                    }
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            }
+        };
+        
+        window.handleGoogleAuth = async function() {
+            try {
+                await window.fb.signInWithPopup(window.fb.auth, window.fb.googleProvider);
+            } catch (error) {
+                document.getElementById('authError').textContent = error.message;
+                document.getElementById('authError').style.display = 'block';
+            }
+        };
+        
+        window.handleSignOut = async function() {
+            if (confirm('Sign out? Your data will still be saved locally.')) {
+                await window.fb.firebaseSignOut(window.fb.auth);
+            }
+        };
+        
+        window.skipLogin = function() {
+            document.getElementById('loginModal').style.display = 'none';
+        };
+    </script>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <h2 style="margin-bottom: 10px; color: #667eea; text-align: center;">🚀 Battle Plan Tracker</h2>
+            <p style="color: #6c757d; margin-bottom: 25px; text-align: center; font-size: 0.95rem;">Sign in to sync across all devices</p>
+            <div id="syncStatus" style="margin-top: 10px; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block; font-size: 0.9rem;">
+                💾 Loading...
+            </div>
+
+            
+            <input type="email" id="authEmail" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+            <input type="password" id="authPassword" placeholder="Password (min 6 chars)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
+            
+            <button onclick="handleEmailAuth()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-size: 1rem;">Sign In / Sign Up</button>
+            
+            <button onclick="handleGoogleAuth()" style="width: 100%; padding: 12px; background: white; border: 2px solid #dee2e6; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 15px; font-size: 1rem;">🔐 Sign in with Google</button>
+            
+            <button onclick="skipLogin()" style="width: 100%; padding: 8px; background: transparent; border: none; color: #6c757d; cursor: pointer; font-size: 0.9rem;">Skip (use without sync)</button>
+            
+            <div id="authError" style="display: none; color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <div class="header">
+            <h1>🚀 8-Week Battle Plan Tracker</h1>
+            <p>Ship Meal Planner + Complete House Projects</p>
+            <div class="countdown" id="countdown"></div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('progress')">📊 Progress</div>
+            <div class="tab" onclick="switchTab('schedule')">📅 Daily Schedule</div>
+            <div class="tab" onclick="switchTab('weeks')">✅ Weekly Tasks</div>
+            <div class="tab" onclick="switchTab('log')">📓 Daily Log</div>
+        </div>
+
+        <!-- PROGRESS TAB -->
+        <div id="progress-tab" class="tab-content active">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">House Projects</div>
+                    <div class="stat-value" id="houseProgress">0/25</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="houseBar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Meal Planner</div>
+                    <div class="stat-value" id="plannerProgress">0/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="plannerBar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Work Hours</div>
+                    <div class="stat-value" id="totalHours">0/54</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="totalBar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHEDULE TAB -->
+        <div id="schedule-tab" class="tab-content">
+            <div class="schedule-grid">
+                <div class="day-schedule">
+                    <h3>Monday - Friday</h3>
+                    <div class="time-block"><span class="time">6:00-7:00 AM</span><span class="activity protected">Devotions</span></div>
+                    <div class="time-block"><span class="time">7:00-7:30 AM</span><span class="activity protected">Get ready + house pickup</span></div>
+                    <div class="time-block"><span class="time">7:30-5:00 PM</span><span class="activity protected">Work + Commute</span></div>
+                    <div class="time-block"><span class="time">5:00-8:00 PM</span><span class="activity protected">Family (dinner/play/bedtime)</span></div>
+                    <div class="time-block"><span class="time">8:00-10:00 PM</span><span class="activity work">Variable (coding/spouse/house)</span></div>
+                    <div class="time-block"><span class="time">10:00-6:00 AM</span><span class="activity protected">Sleep</span></div>
+                </div>
+
+                <div class="day-schedule">
+                    <h3>Wednesday</h3>
+                    <div class="time-block"><span class="time">6:00-7:00 AM</span><span class="activity protected">Devotions</span></div>
+                    <div class="time-block"><span class="time">7:00-7:30 AM</span><span class="activity protected">Get ready + house pickup</span></div>
+                    <div class="time-block"><span class="time">7:30-5:00 PM</span><span class="activity protected">Work + Commute</span></div>
+                    <div class="time-block"><span class="time">5:00-8:00 PM</span><span class="activity protected">Church</span></div>
+                    <div class="time-block"><span class="time">8:00-9:00 PM</span><span class="activity protected">Family (kids bed by 9)</span></div>
+                    <div class="time-block"><span class="time">9:00-10:00 PM</span><span class="activity work">Variable (coding/spouse/house)</span></div>
+                    <div class="time-block"><span class="time">10:00-6:00 AM</span><span class="activity protected">Sleep</span></div>
+                </div>
+
+                <div class="day-schedule">
+                    <h3>Saturday (Weeks 1-4)</h3>
+                    <div class="time-block"><span class="time">6:00-7:00 AM</span><span class="activity protected">Devotions</span></div>
+                    <div class="time-block"><span class="time">7:00-8:00 AM</span><span class="activity protected">Coffee with wife</span></div>
+                    <div class="time-block"><span class="time">8:00-3:00 PM</span><span class="activity work">House Projects/Setup</span></div>
+                    <div class="time-block"><span class="time">3:00-4:30 PM</span><span class="activity work">House Projects</span></div>
+                    <div class="time-block"><span class="time">5:00-8:00 PM</span><span class="activity protected">Family (dinner/play/bedtime)</span></div>
+                    <div class="time-block"><span class="time">8:00-10:00 PM</span><span class="activity work">House Projects</span></div>
+                    <div class="time-block"><span class="time">10:00-6:00 AM</span><span class="activity protected">Sleep</span></div>
+                </div>
+
+                <div class="day-schedule">
+                    <h3>Saturday (Weeks 5-8)</h3>
+                    <div class="time-block"><span class="time">6:00-7:00 AM</span><span class="activity protected">Devotions</span></div>
+                    <div class="time-block"><span class="time">7:00-8:00 AM</span><span class="activity protected">Coffee with wife</span></div>
+                    <div class="time-block"><span class="time">8:00-3:00 PM</span><span class="activity protected">Family/Life</span></div>
+                    <div class="time-block"><span class="time">3:00-4:30 PM</span><span class="activity work">Meal Planner Coding</span></div>
+                    <div class="time-block"><span class="time">5:00-8:00 PM</span><span class="activity protected">Family (dinner/play/bedtime)</span></div>
+                    <div class="time-block"><span class="time">8:00-10:00 PM</span><span class="activity work">Meal Planner Coding</span></div>
+                    <div class="time-block"><span class="time">10:00-6:00 AM</span><span class="activity protected">Sleep</span></div>
+                </div>
+
+                <div class="day-schedule">
+                    <h3>Sunday</h3>
+                    <div class="time-block"><span class="time">6:00-7:00 AM</span><span class="activity protected">Devotions</span></div>
+                    <div class="time-block"><span class="time">7:00-10:00 AM</span><span class="activity protected">Family time</span></div>
+                    <div class="time-block"><span class="time">10:00-1:00 PM</span><span class="activity protected">Church + Travel</span></div>
+                    <div class="time-block"><span class="time">1:00-5:00 PM</span><span class="activity protected">Family/Rest</span></div>
+                    <div class="time-block"><span class="time">5:00-8:00 PM</span><span class="activity protected">Family (dinner/play/bedtime)</span></div>
+                    <div class="time-block"><span class="time">8:00-10:00 PM</span><span class="activity protected">Decompress/Rest</span></div>
+                    <div class="time-block"><span class="time">10:00-6:00 AM</span><span class="activity protected">Sleep</span></div>
+                </div>
+
+                <div class="day-schedule">
+                    <h3>Weekly Summary</h3>
+                    <div class="time-block"><span class="time">Sleep</span><span class="activity">56 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Devotions</span><span class="activity">7 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Work</span><span class="activity">47.5 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Family</span><span class="activity">25 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Church</span><span class="activity">6 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Coffee w/wife</span><span class="activity">1 hr/week</span></div>
+                    <div class="time-block"><span class="time">Morning routine</span><span class="activity">2.5 hrs/week</span></div>
+                    <div class="time-block"><span class="time">Discretionary</span><span class="activity work">26 hrs/week</span></div>
+                    <div class="time-block"><span class="time" style="font-weight: 700;">TOTAL</span><span class="activity" style="font-weight: 700;">168 hrs/week ✅</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEEKS TAB -->
+        <div id="weeks-tab" class="tab-content">
+            <div class="content" id="weekContainer"></div>
+        </div>
+
+        <!-- DAILY LOG TAB -->
+        <div id="log-tab" class="tab-content">
+            <div class="content">
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 15px;">📓 Track Your Actual Day</h2>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Record what actually happened vs. the plan. Log deviations and what you did instead.</p>
+                    
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Week:</label>
+                            <select id="logWeekSelect" onchange="updateLogWeek()" style="padding: 8px; border-radius: 5px; border: 2px solid #dee2e6;">
+                                <option value="1">Week 1 (Feb 1-7)</option>
+                                <option value="2">Week 2 (Feb 8-14)</option>
+                                <option value="3">Week 3 (Feb 15-21)</option>
+                                <option value="4">Week 4 (Feb 22-28)</option>
+                                <option value="5">Week 5 (Mar 1-7)</option>
+                                <option value="6">Week 6 (Mar 8-14)</option>
+                                <option value="7">Week 7 (Mar 15-21)</option>
+                                <option value="8">Week 8 (Mar 22-28)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Day:</label>
+                            <select id="logDaySelect" onchange="loadDailyLog()" style="padding: 8px; border-radius: 5px; border: 2px solid #dee2e6;">
+                                <option value="saturday">Saturday</option>
+                                <option value="sunday">Sunday</option>
+                                <option value="monday">Monday</option>
+                                <option value="tuesday">Tuesday</option>
+                                <option value="wednesday">Wednesday</option>
+                                <option value="thursday">Thursday</option>
+                                <option value="friday">Friday</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dailyLogContent"></div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="saveToFirebase()">💾 Save Progress</button>
+            <button class="btn btn-secondary" onclick="resetAll()">🔄 Reset All</button>
+            <button class="btn btn-success" onclick="exportData()">📥 Export Data</button>
+        </div>
+    </div>
+
+    <script>
+        // Simplified battle plan - only tracking work tasks
+        const battlePlan = {
+            weeks: [
+                {
+                    number: 1,
+                    date: "Feb 1-7",
+                    title: "SETUP WEEK",
+                    tasks: [
+                        { time: "SAT 9-10am", desc: "Get Claude Pro", hours: 1, type: "setup" },
+                        { time: "SAT 10am-1pm", desc: "Build Church Finance Automation", hours: 3, type: "church" },
+                        { time: "SAT 3-4:30pm", desc: "House Project (1 item)", hours: 1.5, type: "house" },
+                        { time: "SAT 8-10pm", desc: "House Projects (2 items)", hours: 2, type: "house" },
+                        { time: "MON 8:30-10pm", desc: "House Project (1 item)", hours: 1.5, type: "house" }
+                    ]
+                },
+                {
+                    number: 2,
+                    date: "Feb 8-14",
+                    title: "HOUSE SPRINT",
+                    tasks: [
+                        { time: "SAT 9am-12pm", desc: "House Projects (2-3 items)", hours: 3, type: "house" },
+                        { time: "SAT 3-4:30pm", desc: "House Project (1 item)", hours: 1.5, type: "house" },
+                        { time: "SAT 8-10pm", desc: "House Projects (2 items)", hours: 2, type: "house" },
+                        { time: "MON 8:30-10pm", desc: "House Project (1 item)", hours: 1.5, type: "house" }
+                    ]
+                },
+                {
+                    number: 3,
+                    date: "Feb 15-21",
+                    title: "HOUSE SPRINT",
+                    tasks: [
+                        { time: "SAT 9am-12pm", desc: "House Projects (2-3 items)", hours: 3, type: "house" },
+                        { time: "SAT 3-4:30pm", desc: "House Project (1 item)", hours: 1.5, type: "house" },
+                        { time: "SAT 8-10pm", desc: "House Projects (2 items)", hours: 2, type: "house" },
+                        { time: "MON 8:30-10pm", desc: "House Project (1 item)", hours: 1.5, type: "house" }
+                    ]
+                },
+                {
+                    number: 4,
+                    date: "Feb 22-28",
+                    title: "HOUSE FINISH",
+                    tasks: [
+                        { time: "SAT 9am-12pm", desc: "House Projects (2-3 items)", hours: 3, type: "house" },
+                        { time: "SAT 3-4:30pm", desc: "House Project (1 item)", hours: 1.5, type: "house" },
+                        { time: "SAT 8-10pm", desc: "House Projects (2 items)", hours: 2, type: "house" },
+                        { time: "MON 8:30-10pm", desc: "House Project (1 item)", hours: 1.5, type: "house" }
+                    ]
+                },
+                {
+                    number: 5,
+                    date: "Mar 1-7",
+                    title: "TRANSITION - Firebase Auth Start",
+                    tasks: [
+                        { time: "SAT 9am-12pm", desc: "Final 3 House Projects", hours: 3, type: "house" },
+                        { time: "SAT 3-4:30pm", desc: "🚀 Set up Firebase project", hours: 1.5, type: "planner" },
+                        { time: "SAT 8-10pm", desc: "🚀 Initialize auth", hours: 2, type: "planner" },
+                        { time: "MON 8:30-10pm", desc: "🚀 Email/password login", hours: 1.5, type: "planner" }
+                    ]
+                },
+                {
+                    number: 6,
+                    date: "Mar 8-14",
+                    title: "FIREBASE AUTH COMPLETE",
+                    tasks: [
+                        { time: "SAT 3-4:30pm", desc: "🚀 Google sign-in", hours: 1.5, type: "planner" },
+                        { time: "SAT 8-10pm", desc: "🚀 User profiles & session mgmt", hours: 2, type: "planner" },
+                        { time: "MON 8:30-10pm", desc: "🚀 Polish auth flow", hours: 1.5, type: "planner" }
+                    ]
+                },
+                {
+                    number: 7,
+                    date: "Mar 15-21",
+                    title: "DATA MIGRATION",
+                    tasks: [
+                        { time: "SAT 3-4:30pm", desc: "💾 Migrate to Firestore", hours: 1.5, type: "planner" },
+                        { time: "SAT 8-10pm", desc: "💾 Security rules setup", hours: 2, type: "planner" },
+                        { time: "MON 8:30-10pm", desc: "💾 Multi-user data isolation", hours: 1.5, type: "planner" }
+                    ]
+                },
+                {
+                    number: 8,
+                    date: "Mar 22-28",
+                    title: "DEPLOYMENT & LAUNCH",
+                    tasks: [
+                        { time: "SAT 3-4:30pm", desc: "🚀 Deploy to Firebase Hosting", hours: 1.5, type: "planner" },
+                        { time: "SAT 8-10pm", desc: "🚀 Bug fixes & polish", hours: 2, type: "planner" },
+                        { time: "MON 8:30-10pm", desc: "✨ Soft launch & user testing", hours: 1.5, type: "planner" }
+                    ]
+                }
+            ]
+        };
+
+
+
+        // Daily schedule templates
+        const dayTemplates = {
+            saturday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Coffee with wife", planned: 1, time: "7-8am", protected: true },
+                { block: "Family/Life", planned: 7, time: "8am-3pm", protected: true },
+                { block: "Work Block", planned: 0, time: "Various", protected: false },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Evening Work", planned: 0, time: "8-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            sunday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Family time", planned: 3, time: "7-10am", protected: true },
+                { block: "Church + Travel", planned: 3, time: "10am-1pm", protected: true },
+                { block: "Family/Rest", planned: 4, time: "1-5pm", protected: true },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Decompress/Rest", planned: 2, time: "8-10pm", protected: true },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            monday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Get ready + house pickup", planned: 0.5, time: "7-7:30am", protected: true },
+                { block: "Work + Commute", planned: 9.5, time: "7:30-5pm", protected: true },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Variable time", planned: 2, time: "8-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            tuesday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Get ready + house pickup", planned: 0.5, time: "7-7:30am", protected: true },
+                { block: "Work + Commute", planned: 9.5, time: "7:30-5pm", protected: true },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Variable time", planned: 2, time: "8-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            wednesday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Get ready + house pickup", planned: 0.5, time: "7-7:30am", protected: true },
+                { block: "Work + Commute", planned: 9.5, time: "7:30-5pm", protected: true },
+                { block: "Church", planned: 3, time: "5-8pm", protected: true },
+                { block: "Family time", planned: 1, time: "8-9pm", protected: true },
+                { block: "Variable time", planned: 1, time: "9-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            thursday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Get ready + house pickup", planned: 0.5, time: "7-7:30am", protected: true },
+                { block: "Work + Commute", planned: 9.5, time: "7:30-5pm", protected: true },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Variable time", planned: 2, time: "8-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ],
+            friday: [
+                { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                { block: "Get ready + house pickup", planned: 0.5, time: "7-7:30am", protected: true },
+                { block: "Work + Commute", planned: 9.5, time: "7:30-5pm", protected: true },
+                { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                { block: "Variable time", planned: 2, time: "8-10pm", protected: false },
+                { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+            ]
+        };
+
+        function updateLogWeek() {
+            loadDailyLog();
+        }
+
+        function loadDailyLog() {
+            const week = parseInt(document.getElementById('logWeekSelect').value);
+            const day = document.getElementById('logDaySelect').value;
+            const logKey = `w${week}-${day}`;
+            
+            // Adjust Saturday template based on week
+            let template = dayTemplates[day];
+            if (day === 'saturday') {
+                if (week <= 4) {
+                    // Weeks 1-4: House projects
+                    template = [
+                        { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                        { block: "Coffee with wife", planned: 1, time: "7-8am", protected: true },
+                        { block: "House Projects/Setup", planned: 4, time: "9am-1pm", protected: false },
+                        { block: "Lunch/Family", planned: 2, time: "1-3pm", protected: true },
+                        { block: "House Projects", planned: 1.5, time: "3-4:30pm", protected: false },
+                        { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                        { block: "House Projects", planned: 2, time: "8-10pm", protected: false },
+                        { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+                    ];
+                } else {
+                    // Weeks 5-8: Meal planner
+                    template = [
+                        { block: "Devotions", planned: 1, time: "6-7am", protected: true },
+                        { block: "Coffee with wife", planned: 1, time: "7-8am", protected: true },
+                        { block: "Family/Life", planned: 7, time: "8am-3pm", protected: true },
+                        { block: "Meal Planner Coding", planned: 1.5, time: "3-4:30pm", protected: false },
+                        { block: "Family time", planned: 3, time: "5-8pm", protected: true },
+                        { block: "Meal Planner Coding", planned: 2, time: "8-10pm", protected: false },
+                        { block: "Sleep", planned: 8, time: "10pm-6am", protected: true }
+                    ];
+                }
+            }
+            
+            const savedLog = progress.dailyLogs[logKey] || {};
+            
+            const container = document.getElementById('dailyLogContent');
+            
+            let html = `
+                <div class="log-entry-card">
+                    <h3>${day.charAt(0).toUpperCase() + day.slice(1)} - Week ${week}</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px; font-size: 0.95rem;">
+                        Track actual hours vs planned. Enter what was different and what you did instead.
+                    </p>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Time Blocks:</div>
+                        
+                        <div class="time-log-row" style="font-weight: 600; background: #e9ecef; padding: 12px; border-radius: 5px;">
+                            <div>Activity</div>
+                            <div>Planned Hrs</div>
+                            <div>Actual Hrs</div>
+                            <div>What Changed?</div>
+                        </div>
+            `;
+            
+            template.forEach((block, index) => {
+                const saved = savedLog.blocks?.[index] || {};
+                const actualHrs = saved.actual !== undefined ? saved.actual : '';
+                const notes = saved.notes || '';
+                const isDifferent = saved.actual !== undefined && saved.actual !== block.planned;
+                
+                html += `
+                    <div class="time-log-row ${isDifferent ? 'deviation' : ''}">
+                        <label>${block.block} ${block.protected ? '🔒' : ''}</label>
+                        <div class="planned-hours">${block.planned} hrs<br><span style="font-size: 0.8rem;">(${block.time})</span></div>
+                        <input type="number" 
+                               step="0.25" 
+                               min="0" 
+                               max="24"
+                               placeholder="${block.planned}"
+                               value="${actualHrs}"
+                               onchange="saveDailyLogBlock(${index}, this.value, '${logKey}')">
+                        <input type="text" 
+                               placeholder="${isDifferent ? 'What did you do?' : 'Notes (optional)'}"
+                               value="${notes}"
+                               onchange="saveDailyLogNotes(${index}, this.value, '${logKey}')">
+                    </div>
+                `;
+            });
+            
+            // Calculate totals
+            let plannedTotal = template.reduce((sum, block) => sum + block.planned, 0);
+            let actualTotal = 0;
+            template.forEach((block, index) => {
+                const saved = savedLog.blocks?.[index] || {};
+                actualTotal += saved.actual !== undefined ? saved.actual : block.planned;
+            });
+            
+            html += `
+                </div>
+                <div style="background: ${actualTotal === 24 ? '#d4edda' : '#fff3cd'}; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: 600;">
+                    Total: ${actualTotal.toFixed(1)} / 24 hours ${actualTotal === 24 ? '✅' : '⚠️'}
+                    <span style="font-weight: normal; margin-left: 10px;">(Planned: ${plannedTotal} hrs)</span>
+                </div>
+            `;
+            
+            // Daily summary notes
+            html += `
+                <div style="margin-top: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">Daily Summary:</label>
+                    <textarea 
+                        style="width: 100%; min-height: 120px; padding: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-family: inherit;"
+                        placeholder="How did the day go overall? Major wins? Challenges? Adjustments for next week?"
+                        onchange="saveDailySummary(this.value, '${logKey}')"
+                    >${savedLog.summary || ''}</textarea>
+                </div>
+            </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function saveDailyLogBlock(blockIndex, actualHours, logKey) {
+            if (!progress.dailyLogs[logKey]) {
+                progress.dailyLogs[logKey] = { blocks: {} };
+            }
+            if (!progress.dailyLogs[logKey].blocks) {
+                progress.dailyLogs[logKey].blocks = {};
+            }
+            
+            if (actualHours) {
+                if (!progress.dailyLogs[logKey].blocks[blockIndex]) {
+                    progress.dailyLogs[logKey].blocks[blockIndex] = {};
+                }
+                progress.dailyLogs[logKey].blocks[blockIndex].actual = parseFloat(actualHours);
+            }
+            
+            saveToFirebase();
+            loadDailyLog(); // Refresh to show updated totals
+        }
+
+        function saveDailyLogNotes(blockIndex, notes, logKey) {
+            if (!progress.dailyLogs[logKey]) {
+                progress.dailyLogs[logKey] = { blocks: {} };
+            }
+            if (!progress.dailyLogs[logKey].blocks) {
+                progress.dailyLogs[logKey].blocks = {};
+            }
+            if (!progress.dailyLogs[logKey].blocks[blockIndex]) {
+                progress.dailyLogs[logKey].blocks[blockIndex] = {};
+            }
+            
+            progress.dailyLogs[logKey].blocks[blockIndex].notes = notes;
+            saveToFirebase();
+        }
+
+        function saveDailySummary(summary, logKey) {
+            if (!progress.dailyLogs[logKey]) {
+                progress.dailyLogs[logKey] = { blocks: {} };
+            }
+            progress.dailyLogs[logKey].summary = summary;
+            saveToFirebase();
+        }
+
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        function updateCountdown() {
+            const twinsDate = new Date('2026-04-05');
+            const now = new Date();
+            const diff = twinsDate - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const weeks = Math.floor(days / 7);
+            
+            document.getElementById('countdown').innerHTML = 
+                `👶👶 Twins arrive in: <strong>${weeks} weeks, ${days % 7} days</strong>`;
+        }
+
+        function renderPlan() {
+            const container = document.getElementById('weekContainer');
+            container.innerHTML = '';
+            
+            battlePlan.weeks.forEach((week) => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week-section';
+                
+                const weekTasks = week.tasks.length;
+                const completedTasks = week.tasks.filter((t, i) => 
+                    progress.tasks[`w${week.number}-t${i}`]).length;
+                
+                if (completedTasks === weekTasks) {
+                    weekDiv.classList.add('completed');
+                }
+                
+                weekDiv.innerHTML = `
+                    <div class="week-header" onclick="toggleWeek(${week.number})">
+                        <div>
+                            <h2>Week ${week.number}: ${week.date}</h2>
+                            <div style="font-size: 0.95rem; margin-top: 5px;">${week.title}</div>
+                        </div>
+                        <div class="week-status">${completedTasks}/${weekTasks} tasks</div>
+                    </div>
+                    <div class="week-content" id="week-content-${week.number}">
+                        ${week.tasks.map((task, taskIndex) => `
+                            <div class="task-item ${progress.tasks[`w${week.number}-t${taskIndex}`] ? 'completed' : ''}" 
+                                 id="task-w${week.number}-t${taskIndex}">
+                                <input type="checkbox" 
+                                       class="task-checkbox" 
+                                       ${progress.tasks[`w${week.number}-t${taskIndex}`] ? 'checked' : ''}
+                                       onchange="toggleTask(${week.number}, ${taskIndex})">
+                                <div class="task-details">
+                                    <div class="task-time">${task.time} (${task.hours} hrs planned)</div>
+                                    <div class="task-description">${task.desc}</div>
+                                    <div class="time-input">
+                                        <label>Actual hours:</label>
+                                        <input type="number" 
+                                               step="0.25" 
+                                               min="0" 
+                                               placeholder="${task.hours}"
+                                               value="${progress.actualHours[`w${week.number}-t${taskIndex}`] || ''}"
+                                               onchange="updateActualHours(${week.number}, ${taskIndex}, this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="notes-section">
+                            <h4>📝 Week ${week.number} Notes</h4>
+                            <textarea 
+                                placeholder="What went well? What was challenging? Adjustments needed?"
+                                onchange="saveNotes(${week.number}, this.value)"
+                            >${progress.notes[`week${week.number}`] || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(weekDiv);
+            });
+            
+            updateStats();
+        }
+
+        function toggleTask(weekNum, taskIndex) {
+            const key = `w${weekNum}-t${taskIndex}`;
+            progress.tasks[key] = !progress.tasks[key];
+            saveToFirebase();
+            renderPlan();
+        }
+
+        function updateActualHours(weekNum, taskIndex, hours) {
+            const key = `w${weekNum}-t${taskIndex}`;
+            if (hours) {
+                progress.actualHours[key] = parseFloat(hours);
+            } else {
+                delete progress.actualHours[key];
+            }
+            saveToFirebase();
+            updateStats();
+        }
+
+        function saveNotes(weekNum, notes) {
+            progress.notes[`week${weekNum}`] = notes;
+            saveToFirebase();
+        }
+
+        function toggleWeek(weekNum) {
+            const content = document.getElementById(`week-content-${weekNum}`);
+            content.classList.toggle('collapsed');
+        }
+
+        function updateStats() {
+            let houseCount = 0;
+            let plannerHours = 0;
+            let totalHours = 0;
+            
+            // Only count COMPLETED tasks
+            battlePlan.weeks.forEach((week) => {
+                week.tasks.forEach((task, taskIndex) => {
+                    const key = `w${week.number}-t${taskIndex}`;
+                    
+                    // Only count if task is checked as complete
+                    if (progress.tasks[key]) {
+                        if (task.type === 'house') houseCount++;
+                        if (task.type === 'planner') plannerHours += task.hours;
+                        
+                        // Use actual hours if logged, otherwise use planned hours
+                        if (progress.actualHours[key]) {
+                            totalHours += progress.actualHours[key];
+                        } else {
+                            totalHours += task.hours;
+                        }
+                    }
+                });
+            });
+            
+            const housePercent = (houseCount / 25) * 100;
+            const plannerPercent = (plannerHours / 20) * 100;
+            const totalPercent = (totalHours / 54) * 100;
+            
+            document.getElementById('houseProgress').textContent = `${houseCount}/25`;
+            document.getElementById('houseBar').style.width = `${housePercent}%`;
+            document.getElementById('houseBar').textContent = `${Math.round(housePercent)}%`;
+            
+            document.getElementById('plannerProgress').textContent = `${plannerHours}/20`;
+            document.getElementById('plannerBar').style.width = `${plannerPercent}%`;
+            document.getElementById('plannerBar').textContent = `${Math.round(plannerPercent)}%`;
+            
+            document.getElementById('totalHours').textContent = `${totalHours.toFixed(1)}/54`;
+            document.getElementById('totalBar').style.width = `${totalPercent}%`;
+            document.getElementById('totalBar').textContent = `${Math.round(totalPercent)}%`;
+        }
+
+        function saveToFirebase() {
+            localStorage.setItem('battlePlanProgress', JSON.stringify(progress));
+        }
+
+        function resetAll() {
+            if (confirm('Are you sure you want to reset ALL progress? This cannot be undone!')) {
+                progress = { tasks: {}, actualHours: {}, notes: {} };
+                localStorage.removeItem('battlePlanProgress');
+                renderPlan();
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify({
+                battlePlan: battlePlan,
+                progress: progress,
+                exportDate: new Date().toISOString()
+            }, null, 2);
+            
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `battle-plan-progress-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPlan();
+            updateCountdown();
+            setInterval(updateCountdown, 60000);
+            loadDailyLog(); // Initialize daily log
+        });
+    </script>
+</body>
+</html>
