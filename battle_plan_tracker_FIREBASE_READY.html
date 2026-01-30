@@ -1297,9 +1297,11 @@
                     currentUser = null;
                     const syncStatus = document.getElementById('syncStatus');
                     const logoutBtn = document.getElementById('logoutBtn');
+                    const loginModal = document.getElementById('loginModal');
                     
                     if (syncStatus) syncStatus.textContent = '💾 Local Only';
                     if (logoutBtn) logoutBtn.style.display = 'none';
+                    if (loginModal) loginModal.style.display = 'flex'; // SHOW login modal when not logged in
                     if (unsubscribe) unsubscribe();
                     
                     progress = JSON.parse(localStorage.getItem('battlePlanProgress')) || {
