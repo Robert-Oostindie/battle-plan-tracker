@@ -441,28 +441,40 @@
         }
     </style>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Wait for Firebase to load, then initialize
+        window.addEventListener('load', function() {
+            // ⚠️⚠️⚠️ REPLACE WITH YOUR FIREBASE CONFIG ⚠️⚠️⚠️
+            const firebaseConfig = {
+                apiKey: "AIzaSyBXnHnOuY1cIS3q74_3VanlqeiTcFklD44",
+				authDomain: "battle-plan-tracker.firebaseapp.com",
+				projectId: "battle-plan-tracker",
+				storageBucket: "battle-plan-tracker.firebasestorage.app",
+				messagingSenderId: "634543656963",
+				appId: "1:634543656963:web:5a47964853bead06243e36"
+            };
 
-        // ⚠️⚠️⚠️ REPLACE WITH YOUR FIREBASE CONFIG ⚠️⚠️⚠️
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXnHnOuY1cIS3q74_3VanlqeiTcFklD44",
-            authDomain: "battle-plan-tracker.firebaseapp.com",
-            projectId: "battle-plan-tracker",
-            storageBucket: "battle-plan-tracker.firebasestorage.app",
-            messagingSenderId: "634543656963",
-            appId: "1:634543656963:web:5a47964853bead06243e36"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider();
-
-        window.firebaseApp = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, onAuthStateChanged, firebaseSignOut, doc, setDoc, onSnapshot };
+            // Initialize Firebase
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                window.auth = firebase.auth();
+                window.db = firebase.firestore();
+                window.googleProvider = new firebase.auth.GoogleAuthProvider();
+                console.log('✅ Firebase initialized successfully');
+                
+                // Set up auth listener after Firebase is ready
+                if (window.setupFirebaseAuth) {
+                    window.setupFirebaseAuth();
+                }
+            } else {
+                console.error('❌ Firebase failed to load');
+            }
+        });
     </script>
 </head>
 <body>
@@ -475,11 +487,11 @@
             <input type="email" id="authEmail" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
             <input type="password" id="authPassword" placeholder="Password (min 6 chars)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; box-sizing: border-box;">
             
-            <button onclick="window.handleEmailAuth()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-size: 1rem;">Sign In / Sign Up</button>
+            <button onclick="handleEmailAuth()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-size: 1rem;">Sign In / Sign Up</button>
             
-            <button onclick="window.handleGoogleAuth()" style="width: 100%; padding: 12px; background: white; border: 2px solid #dee2e6; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 15px; font-size: 1rem;">🔐 Sign in with Google</button>
+            <button onclick="handleGoogleAuth()" style="width: 100%; padding: 12px; background: white; border: 2px solid #dee2e6; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 15px; font-size: 1rem;">🔐 Sign in with Google</button>
             
-            <button onclick="window.skipLogin()" style="width: 100%; padding: 8px; background: transparent; border: none; color: #6c757d; cursor: pointer; font-size: 0.9rem;">Skip (use without sync)</button>
+            <button onclick="skipLogin()" style="width: 100%; padding: 8px; background: transparent; border: none; color: #6c757d; cursor: pointer; font-size: 0.9rem;">Skip (use without sync)</button>
             
             <div id="authError" style="display: none; color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9rem;"></div>
         </div>
@@ -1170,23 +1182,26 @@
             loadDailyLog(); // Initialize daily log
         });
     
-        // Firebase sync function
-        window.saveToFirebase = async function() {
-            if (!currentUser) {
+        // Firebase functions - only call after Firebase is loaded
+        async function saveToFirebase() {
+            if (!window.auth || !currentUser) {
                 localStorage.setItem('battlePlanProgress', JSON.stringify(progress));
                 return;
             }
             try {
-                const userDoc = window.firebaseApp.doc(window.firebaseApp.db, 'users', currentUser.uid);
-                await window.firebaseApp.setDoc(userDoc, progress);
+                await window.db.collection('users').doc(currentUser.uid).set(progress);
             } catch (err) {
-                console.error('Firebase save error:', err);
+                console.error('Save error:', err);
                 localStorage.setItem('battlePlanProgress', JSON.stringify(progress));
             }
-        };
+        }
 
-        // Auth handlers
-        window.handleEmailAuth = async function() {
+        async function handleEmailAuth() {
+            if (!window.auth) {
+                alert('Firebase is still loading, please wait a moment...');
+                return;
+            }
+            
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
             const errorDiv = document.getElementById('authError');
@@ -1199,7 +1214,7 @@
             
             try {
                 try {
-                    await window.firebaseApp.signInWithEmailAndPassword(window.firebaseApp.auth, email, password);
+                    await window.auth.signInWithEmailAndPassword(email, password);
                 } catch (loginError) {
                     if (loginError.code === 'auth/user-not-found' || loginError.code === 'auth/wrong-password' || loginError.code === 'auth/invalid-credential') {
                         if (password.length < 6) {
@@ -1207,71 +1222,80 @@
                             errorDiv.style.display = 'block';
                             return;
                         }
-                        await window.firebaseApp.createUserWithEmailAndPassword(window.firebaseApp.auth, email, password);
+                        await window.auth.createUserWithEmailAndPassword(email, password);
                     } else {
                         throw loginError;
                     }
                 }
+                errorDiv.style.display = 'none';
             } catch (error) {
                 errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
             }
-        };
+        }
         
-        window.handleGoogleAuth = async function() {
+        async function handleGoogleAuth() {
+            if (!window.auth) {
+                alert('Firebase is still loading, please wait a moment...');
+                return;
+            }
+            
             try {
-                await window.firebaseApp.signInWithPopup(window.firebaseApp.auth, window.firebaseApp.googleProvider);
+                await window.auth.signInWithPopup(window.googleProvider);
+                document.getElementById('authError').style.display = 'none';
             } catch (error) {
-                document.getElementById('authError').textContent = error.message;
-                document.getElementById('authError').style.display = 'block';
+                const errorDiv = document.getElementById('authError');
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
             }
-        };
+        }
         
-        window.handleSignOut = async function() {
+        async function handleSignOut() {
             if (confirm('Sign out? Your data will still be saved locally.')) {
-                await window.firebaseApp.firebaseSignOut(window.firebaseApp.auth);
+                await window.auth.signOut();
             }
-        };
+        }
         
-        window.skipLogin = function() {
+        function skipLogin() {
             document.getElementById('loginModal').style.display = 'none';
-        };
+        }
 
-        // Auth state listener
-        window.firebaseApp.onAuthStateChanged(window.firebaseApp.auth, (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('syncStatus').textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                
-                const userDoc = window.firebaseApp.doc(window.firebaseApp.db, 'users', user.uid);
-                if (unsubscribe) unsubscribe();
-                
-                unsubscribe = window.firebaseApp.onSnapshot(userDoc, (snapshot) => {
-                    if (snapshot.exists()) {
-                        progress = snapshot.data();
-                        renderPlan();
-                        updateStats();
-                        if (typeof loadDailyLog === 'function') loadDailyLog();
-                    } else {
-                        window.saveToFirebase();
-                    }
-                });
-            } else {
-                currentUser = null;
-                document.getElementById('syncStatus').textContent = '💾 Local Only';
-                document.getElementById('logoutBtn').style.display = 'none';
-                if (unsubscribe) unsubscribe();
-                
-                progress = JSON.parse(localStorage.getItem('battlePlanProgress')) || {
-                    tasks: {}, actualHours: {}, notes: {}, dailyLogs: {}
-                };
-                renderPlan();
-                updateStats();
-                if (typeof loadDailyLog === 'function') loadDailyLog();
-            }
-        });
+        // Setup Firebase auth listener - called after Firebase loads
+        window.setupFirebaseAuth = function() {
+            window.auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('syncStatus').textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                    
+                    if (unsubscribe) unsubscribe();
+                    
+                    unsubscribe = window.db.collection('users').doc(user.uid).onSnapshot((snapshot) => {
+                        if (snapshot.exists) {
+                            progress = snapshot.data();
+                            renderPlan();
+                            updateStats();
+                            if (typeof loadDailyLog === 'function') loadDailyLog();
+                        } else {
+                            saveToFirebase();
+                        }
+                    });
+                } else {
+                    currentUser = null;
+                    document.getElementById('syncStatus').textContent = '💾 Local Only';
+                    document.getElementById('logoutBtn').style.display = 'none';
+                    if (unsubscribe) unsubscribe();
+                    
+                    progress = JSON.parse(localStorage.getItem('battlePlanProgress')) || {
+                        tasks: {}, actualHours: {}, notes: {}, dailyLogs: {}
+                    };
+                    renderPlan();
+                    updateStats();
+                    if (typeof loadDailyLog === 'function') loadDailyLog();
+                }
+            });
+        };
     </script></script>
 </body>
 </html>
