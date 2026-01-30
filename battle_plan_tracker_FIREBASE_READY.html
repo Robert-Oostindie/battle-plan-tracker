@@ -467,10 +467,21 @@
                 window.googleProvider = new firebase.auth.GoogleAuthProvider();
                 console.log('✅ Firebase initialized successfully');
                 
-                // Set up auth listener after Firebase is ready
-                if (window.setupFirebaseAuth) {
-                    window.setupFirebaseAuth();
-                }
+                // Set up auth listener after the rest of the script loads
+                setTimeout(function() {
+                    if (window.setupFirebaseAuth) {
+                        window.setupFirebaseAuth();
+                    } else {
+                        console.error('setupFirebaseAuth not defined yet, waiting...');
+                        setTimeout(function() {
+                            if (window.setupFirebaseAuth) {
+                                window.setupFirebaseAuth();
+                            } else {
+                                console.error('setupFirebaseAuth still not defined!');
+                            }
+                        }, 1000);
+                    }
+                }, 500);
             } else {
                 console.error('❌ Firebase failed to load');
             }
