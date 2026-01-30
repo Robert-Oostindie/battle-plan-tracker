@@ -467,21 +467,10 @@
                 window.googleProvider = new firebase.auth.GoogleAuthProvider();
                 console.log('✅ Firebase initialized successfully');
                 
-                // Set up auth listener after the rest of the script loads
-                setTimeout(function() {
-                    if (window.setupFirebaseAuth) {
-                        window.setupFirebaseAuth();
-                    } else {
-                        console.error('setupFirebaseAuth not defined yet, waiting...');
-                        setTimeout(function() {
-                            if (window.setupFirebaseAuth) {
-                                window.setupFirebaseAuth();
-                            } else {
-                                console.error('setupFirebaseAuth still not defined!');
-                            }
-                        }, 1000);
-                    }
-                }, 500);
+                // Set up auth listener after Firebase is ready
+                if (window.setupFirebaseAuth) {
+                    window.setupFirebaseAuth();
+                }
             } else {
                 console.error('❌ Firebase failed to load');
             }
@@ -1273,12 +1262,24 @@
 
         // Setup Firebase auth listener - called after Firebase loads
         window.setupFirebaseAuth = function() {
+            // Make sure DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    window.setupFirebaseAuth();
+                });
+                return;
+            }
+            
             window.auth.onAuthStateChanged((user) => {
                 if (user) {
                     currentUser = user;
-                    document.getElementById('loginModal').style.display = 'none';
-                    document.getElementById('syncStatus').textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
-                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                    const loginModal = document.getElementById('loginModal');
+                    const syncStatus = document.getElementById('syncStatus');
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    
+                    if (loginModal) loginModal.style.display = 'none';
+                    if (syncStatus) syncStatus.textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
+                    if (logoutBtn) logoutBtn.style.display = 'inline-block';
                     
                     if (unsubscribe) unsubscribe();
                     
@@ -1294,8 +1295,11 @@
                     });
                 } else {
                     currentUser = null;
-                    document.getElementById('syncStatus').textContent = '💾 Local Only';
-                    document.getElementById('logoutBtn').style.display = 'none';
+                    const syncStatus = document.getElementById('syncStatus');
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    
+                    if (syncStatus) syncStatus.textContent = '💾 Local Only';
+                    if (logoutBtn) logoutBtn.style.display = 'none';
                     if (unsubscribe) unsubscribe();
                     
                     progress = JSON.parse(localStorage.getItem('battlePlanProgress')) || {
