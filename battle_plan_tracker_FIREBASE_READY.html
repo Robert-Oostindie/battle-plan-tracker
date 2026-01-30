@@ -476,13 +476,18 @@
         // Make globally available
         window.fb = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, onAuthStateChanged, firebaseSignOut, doc, setDoc, onSnapshot };
         
-        // Auth state listener
-        window.fb.onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.currentUser = user;
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('syncStatus').textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
-                document.getElementById('logoutBtn').style.display = 'inline-block';
+        // Auth state listener - wait for DOM to load
+        document.addEventListener('DOMContentLoaded', () => {
+            window.fb.onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    window.currentUser = user;
+                    const loginModal = document.getElementById('loginModal');
+                    const syncStatus = document.getElementById('syncStatus');
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    
+                    if (loginModal) loginModal.style.display = 'none';
+                    if (syncStatus) syncStatus.textContent = '✅ Synced (' + user.email.split('@')[0] + ')';
+                    if (logoutBtn) logoutBtn.style.display = 'inline-block';
                 
                 // Set up Firestore listener
                 const userDoc = window.fb.doc(db, 'users', user.uid);
@@ -577,7 +582,8 @@
         };
         
         window.skipLogin = function() {
-            document.getElementById('loginModal').style.display = 'none';
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) loginModal.style.display = 'none';
         };
     </script>
 </head>
